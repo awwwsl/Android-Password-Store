@@ -131,6 +131,8 @@
   <string name="pref_git_delete_repo_summary">Deletes local (hidden) repository.</string>
   <string name="prefs_export_passwords_title">Export repository</string>
   <string name="prefs_export_passwords_summary">Exports the password repository to an external directory.</string>
+  <string name="prefs_export_git_bundle_title">Export git bundle</string>
+  <string name="prefs_export_git_bundle_summary">Exports the password repository as git bundle to an external directory.</string>
   <string name="prefs_import_passwords_title">Import repository</string>
   <string name="prefs_import_passwords_summary">Imports a password repository from an external directory.</string>
   <string name="prefs_repo_not_empty_dialog_title">Local repository not empty</string>

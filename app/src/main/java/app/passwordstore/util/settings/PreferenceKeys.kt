@@ -21,6 +21,7 @@ object PreferenceKeys {
   const val COPY_ON_DECRYPT = "copy_on_decrypt"
   const val ENABLE_DEBUG_LOGGING = "enable_debug_logging"
   const val EXPORT_PASSWORDS = "export_passwords"
+  const val EXPORT_GIT_BUNDLE = "export_git_bundle"
   const val IMPORT_PASSWORDS = "import_passwords"
   const val FILTER_RECURSIVELY = "filter_recursively"
   const val GENERAL_SHOW_TIME = "general_show_time"

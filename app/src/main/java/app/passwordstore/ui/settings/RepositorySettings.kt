@@ -57,6 +57,8 @@ import java.time.format.DateTimeFormatter
 import logcat.LogPriority.ERROR
 import logcat.asLog
 import logcat.logcat
+import org.eclipse.jgit.lib.NullProgressMonitor
+import org.eclipse.jgit.transport.BundleWriter
 
 class RepositorySettings(private val activity: FragmentActivity) : SettingsProvider {
 
@@ -94,6 +96,40 @@ class RepositorySettings(private val activity: FragmentActivity) : SettingsProvi
           logcat { "Copying ${repositoryDirectory.path} to $targetDirectory" }
           copyDirToDir(internalRepository, passDir)
           logcat { "Done with importing ${repositoryDirectory.path} to $targetDirectory" }
+        }
+        .onFailure { e -> logcat(ERROR) { e.asLog() } }
+    }
+
+  private val gitBundleExportAction =
+    activity.registerForActivityResult(
+      object : ActivityResultContracts.OpenDocumentTree() {
+        override fun createIntent(context: Context, input: Uri?): Intent {
+          return super.createIntent(context, input).apply {
+            flags =
+              Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                Intent.FLAG_GRANT_WRITE_URI_PERMISSION or
+                Intent.FLAG_GRANT_PREFIX_URI_PERMISSION
+          }
+        }
+      }
+    ) { uri: Uri? ->
+      if (uri == null) return@registerForActivityResult
+      val targetDirectory = DocumentFile.fromTreeUri(activity.applicationContext, uri)
+      val dataString = LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME)
+      val bundleFile =
+        targetDirectory?.createFile("application/octet-stream", "password_store_$dataString.bundle")
+          ?: return@registerForActivityResult
+
+      val repository = PasswordRepository.repository ?: return@registerForActivityResult
+      val writer = BundleWriter(repository)
+      for (ref in repository.refDatabase.refs) {
+        writer.include(ref)
+      }
+      runCatching {
+          writer.writeBundle(
+            NullProgressMonitor.INSTANCE,
+            activity.applicationContext.contentResolver.openOutputStream(bundleFile.uri),
+          )
         }
         .onFailure { e -> logcat(ERROR) { e.asLog() } }
     }
@@ -267,6 +303,14 @@ class RepositorySettings(private val activity: FragmentActivity) : SettingsProvi
         summaryRes = R.string.prefs_export_passwords_summary
         onClick {
           storeExportAction.launch(null)
+          true
+        }
+      }
+      pref(PreferenceKeys.EXPORT_GIT_BUNDLE) {
+        titleRes = R.string.prefs_export_git_bundle_title
+        summaryRes = R.string.prefs_export_git_bundle_summary
+        onClick {
+          gitBundleExportAction.launch(null)
           true
         }
       }
